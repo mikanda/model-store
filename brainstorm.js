@@ -6,7 +6,7 @@ var store = ModelStore();
 // Create a stamping model class which is then nested into the
 // employee class.
 
-var Stamping = model('stamping')
+var Stamping = Employee.model('stamping')
   .use(store())
   .attr('start')
   .attr('end');
@@ -24,15 +24,22 @@ var Employee = model('employee')
   // this gives the stamping class a new attribute called `employee`
   // which stores the reference to the `Employee`.
   .attr('name')
-  .attr('stampings', { ref: Stamping })
-  .attr('stampings2', { ref: Stamping })
+  .attr('stamping', { ref: Stamping })
+  .attr('stamping', Stamping)
+  .attr('stampings', [{ ref: Stamping }])
+  .attr('stampings2', [Stamping])
 
   // ...
   ;
 
 // use the model
 var employee = new Employee({ name: 'John Smith' });
-var stamping = new employee.stampings.create({ start: new Date() });
+employee.stampings2.at(1);
+var Stampings = employee.stampings;
+var stamping = employee.stampings.create({ start: new Date() });
+
+var EmployeeStamping = employee.stampings;
+new EmployeeStamping();
 
 // the stamping has a back-reference to the employee
 stamping.employee === employee;
@@ -45,8 +52,12 @@ employee.save(function(err, res){
 });
 
 // fetches /employees/:employee/stampings/id58294
-employee.stampings.get('id58294', function(){
+employee.stampings.get('id58294', function(err, stamping){
 });
 
-employee.stampings.all(function(){
+employee.stampings.all(function(err, stampings){
+
+  // ...
+
+  stampings.save();
 });

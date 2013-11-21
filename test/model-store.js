@@ -78,7 +78,9 @@ describe('ModelStore', function(){
   });
   describe('.attr()', function(){
     it('should generate the backreference', function(){
-      var employee = new Employee();
+      var employee = new Employee({ stamping2: { _id: 1, start: 1, end: 1 } });
+      employee.stamping2.should.be.an.instanceof(Stamping);
+      employee.stamping2.toJSON().should.eql({ _id: 1, start: 1, end: 1 });
       var EmployeeStamping = employee.stamping;
       should.exist(EmployeeStamping);
       var stamping = new EmployeeStamping({ start: 3 });

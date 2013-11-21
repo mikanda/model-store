@@ -6,6 +6,7 @@
 var chai = require('chai')
   , model = require('model')
   , store = require('model-store')
+  , factory = require('factorify')
   , should = chai.should();
 
 /**
@@ -14,6 +15,7 @@ var chai = require('chai')
 
 var Employee;
 var Stamping;
+
 
 /**
  * Tests.
@@ -44,6 +46,22 @@ describe('ModelStore', function(){
       .attr('stampings', [{ ref: Stamping }])
       .attr('stampings2', [Stamping]);
     
+    /**
+     * Factories
+     */
+
+    var EmployeeFactory = factory()
+      .attr('name', function () {
+        return chance.name();
+      });
+
+    var StampingFactory = factory()
+      .attr('start', function () {
+        return chance.date();
+      })
+      .attr('end', function () {
+        return chance.date();
+      });
   });
 
   // Initialization of a new model-store:

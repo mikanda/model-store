@@ -12,7 +12,8 @@
   },
   "development": {
     "visionmedia/mocha": "*",
-    "chaijs/chai": "*"
+    "chaijs/chai": "*",
+    "mikanda/factorify": "*"
   },
   "scripts": [
     "index.js",

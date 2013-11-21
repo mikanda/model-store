@@ -91,8 +91,35 @@ describe('ModelStore', function(){
       stamping.url.should.equal('/employees/3d45dw/stamping');
     });
   });
-  describe('.all()', function(){
-    it('should fetch all the objects via the object store', function(){
+  describe('.get()', function(){
+    var server;
+    before(function(){
+      server = sinon.fakeServer.create();
+      server.respondWith(
+        'POST', /\/employees\/([^/]+)\/stamping/, function(xhr, id){
+          xhr.respond(200, {
+            "Content-Type": "application/json"
+          }, JSON.stringify({
+            employee: id,
+            start: new Date(),
+            end: new Date()
+          }));
+        });
+      server.onCreate = function(xhr){
+        console.log(xhr);
+      };
+    });
+    it('should fetch the object reference via the object store', function(done){
+      var employee = new Employee({ _id: 'id123' });
+      employee.stamping.get(function(err, stamping){
+        if (err) return done(err);
+        console.log(stamping);
+        done();
+      });
+      server.respond();
+    });
+    after(function(){
+      server.restore();
     });
   });
 

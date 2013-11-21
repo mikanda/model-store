@@ -3,83 +3,95 @@
  * Module dependencies.
  */
 
+var ModelCtor = require('./lib/model')
+  , Collection = require('./lib/collection');
+
 /**
  * Module exports.
  */
 
-module.exports = function(Model){
+exports = module.exports = function(typeName, collectionName){
+  collectionName = collectionName || typeName + 's';
+  return function(Model){
 
-  /**
-   * Private variables.
-   */
+    /**
+     * Private variables.
+     */
 
-  var self = Model;
+    var self = Model;
 
-  // save original .attr() method
-  var origAttr = Model.attr;
+    // save original .attr() method
+    var origAttr = Model.attr;
 
-  /**
-   * Public methods.
-   */
+    /**
+     * Public variables.
+     */
 
-  Model.attr = attr;
+    self.typeName = typeName;
+    self.collectionName = collectionName;
+    self.url = '/' + self.collectionName;
 
-  /**
-   * Overrides the original .attr() method to define references.
-   */
+    /**
+     * Public methods.
+     */
 
-  function attr(name, opts){
+    self.attr = attr;
 
-    // 'true' if this declares a collection of references
-    var refs = (Array.isArray(opts) && opts[0] && opts[0].ref);
+    Model.on('construct', function(inst){
+      inst.url = Model.url + '/' + inst._id;
+    });
 
-    // do the dispatching if this is a attribute processible by this
-    // plugin
-    if (!refs || !opts.ref) {
-      return origAttr.apply(this, arguments);
+    /**
+     * Overrides the original .attr() method to define references.
+     */
+
+    function attr(name, opts){
+
+      // 'true' if this declares a collection of references
+      var refs = (Array.isArray(opts) && opts[0] && opts[0].ref);
+
+      // do the dispatching if this is a attribute processible by this
+      // plugin
+      if (!refs && !(opts && opts.ref)) {
+        return origAttr.apply(this, arguments);
+      }
+      if (refs) {
+
+        // generate a collection-class bound to the attribute name
+        return origAttr.call(this, name, collection(opts[0].ref, name));
+      } else {
+
+        // generate a model-constructor bound to the attribute
+        // name
+        origAttr.call(this, name, model(opts.ref, name));
+        return this;
+      }
+    };
+
+    /**
+     * Generates a collection class scoped to `name`.  Means that calls
+     * to the communication methods lead to urls like:
+     *
+     *   /top-level/<name>/
+     *
+     * @param {Function} type the type constructor
+     * @param {String} name the name to scope to
+     */
+
+    function collection(type, name) {
+      return {
+        compute: Collection(type, name),
+        persistent: false,
+        writable: false
+      };
     }
-    if (refs) {
 
-      // generate a collection-class bound to the attribute name
-      origAttr.call(this, name, collection(opts[0].ref, name));
-    } else {
-
-      // generate a model-class bound to the attribute name
-      origAttr.call(this, name, model(opts.ref, name));
+    function model(type, name) {
+      return {
+        compute: ModelCtor(type, name),
+        persistent: false,
+        writable: false
+      };
     }
   };
-
-  /**
-   * Generates a collection class scoped to `name`.  Means that calls
-   * to the communication methods lead to urls like:
-   *
-   *   /top-level/<name>/
-   *
-   * @param {Function} type the type constructor
-   * @param {String} name the name to scope to
-   */
-
-  function collection(type, name) {
-    return {
-      preset: Collection(self, name),
-      writable: false
-    };
-  }
-
-  function model(type, name) {
-    return {
-      preset: Model(self, name),
-      writable: false
-    };
-  }
-
-  /**
-   * Generates a model class scoped to `name`.
-   *
-   * @param {Function} type
-   * @param {String} name
-   */
-
-  function model(type, name) {
-  }
 };

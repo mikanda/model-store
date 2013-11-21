@@ -32,6 +32,9 @@ var Employee = model('employee')
   // ...
   ;
 
+Employee.stamping.get();
+Employee.stampings.all();
+
 // use the model
 var employee = new Employee({ name: 'John Smith' });
 employee.stampings2.at(1);

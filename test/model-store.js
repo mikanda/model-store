@@ -22,12 +22,32 @@ var Stamping;
  */
 
 describe('ModelStore', function(){
+  
+  /**
+   * Factories
+   */
+
+  var EmployeeFactory = factory()
+    .attr('name', function () {
+      return chance.name();
+    });
+
+  var StampingFactory = factory()
+    .sequence('_id', 'id')
+    .attr('start', function () {
+      return chance.date();
+    })
+    .attr('end', function () {
+      return chance.date();
+    });
+
   before(function(){
 
     // initialize test models
 
     Stamping = model()
       .use(store('stamping'))
+      .attr('_id')
       .attr('start')
       .attr('end');
 
@@ -45,23 +65,6 @@ describe('ModelStore', function(){
       .attr('stamping2', Stamping)
       .attr('stampings', [{ ref: Stamping }])
       .attr('stampings2', [Stamping]);
-    
-    /**
-     * Factories
-     */
-
-    var EmployeeFactory = factory()
-      .attr('name', function () {
-        return chance.name();
-      });
-
-    var StampingFactory = factory()
-      .attr('start', function () {
-        return chance.date();
-      })
-      .attr('end', function () {
-        return chance.date();
-      });
   });
 
   // Initialization of a new model-store:
@@ -91,35 +94,81 @@ describe('ModelStore', function(){
       stamping.url.should.equal('/employees/3d45dw/stamping');
     });
   });
-  describe('.get()', function(){
-    var server;
-    before(function(){
-      server = sinon.fakeServer.create();
-      server.respondWith(
-        'POST', /\/employees\/([^/]+)\/stamping/, function(xhr, id){
-          xhr.respond(200, {
-            "Content-Type": "application/json"
-          }, JSON.stringify({
-            employee: id,
-            start: new Date(),
-            end: new Date()
-          }));
-        });
-      server.onCreate = function(xhr){
-        console.log(xhr);
-      };
-    });
-    it('should fetch the object reference via the object store', function(done){
-      var employee = new Employee({ _id: 'id123' });
-      employee.stamping.get(function(err, stamping){
-        if (err) return done(err);
-        console.log(stamping);
-        done();
+  describe('ScopedModel', function(){
+    describe('.get()', function(){
+      var server;
+      var respondSpy = sinon.spy();
+      var stamping = new StampingFactory();
+      before(function(){
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET', /\/employees\/([^/]+)\/stamping/, function(xhr, id){
+            respondSpy();
+            xhr.respond(200, {
+              "Content-Type": "application/json"
+            }, JSON.stringify(stamping));
+          });
       });
-      server.respond();
+      it('should fetch the object reference via the object store', function(done){
+        var employee = new Employee({ _id: 'id123' });
+        employee.stamping.get(function(err, res){
+          if (err) return done(err);
+          res.toJSON().should.eql(JSON.parse(JSON.stringify(stamping)));
+          store.has('/employees/id123/stamping').should.be.true;
+          respondSpy.calledOnce.should.be.true;
+          employee.stamping.get(function(err, res){
+            respondSpy.calledOnce.should.be.true;
+            done();
+          });
+        });
+        server.respond();
+      });
+      after(function(){
+        server.restore();
+      });
     });
-    after(function(){
-      server.restore();
+  });
+  describe('ScopedCollection', function(){
+    describe('.all()', function(){
+      var server;
+      var respondSpy = sinon.spy();
+      var stamping = new StampingFactory();
+      before(function(){
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET', /\/employees\/([^/]+)\/stampings/, function(xhr){
+            xhr.respond(200, {
+              'Content-Type': 'application/json'
+            }, JSON.stringify([stamping._id]));
+          });
+        server.respondWith(
+          'POST', /\/employees\/([^/]+)\/stampings/,
+          function(xhr, employee, id){
+            employee.should.equal('id123');
+            respondSpy();
+            xhr.respond(200, {
+              'Content-Type': 'application/json'
+            }, JSON.stringify([stamping]));
+          });
+      });
+      it('should fetch the object reference via the object store', function(done){
+        var employee = new Employee({ _id: 'id123' });
+        employee.stampings.all(function(err, res){
+          if (err) return done(err);
+          res.toJSON().should.eql(JSON.parse(JSON.stringify([stamping])));
+          respondSpy.calledOnce.should.be.true;
+          employee.stampings.all(function(err, res){
+            if (err) return done(err);
+            res.toJSON().should.eql(JSON.parse(JSON.stringify([stamping])));
+            respondSpy.calledOnce.should.be.true;
+            done();
+          });
+        });
+        server.respond();
+      });
+      after(function(){
+        server.restore();
+      });
     });
   });
 

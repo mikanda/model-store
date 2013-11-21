@@ -3,7 +3,9 @@
  * Module dependencies.
  */
 
-var ModelCtor = require('./lib/model')
+var bind = require('bind')
+  , store = require('./lib/store')
+  , ModelCtor = require('./lib/model')
   , Collection = require('./lib/collection');
 
 /**
@@ -13,6 +15,7 @@ var ModelCtor = require('./lib/model')
 exports = module.exports = function(typeName, collectionName){
   collectionName = collectionName || typeName + 's';
   return function(Model){
+    exports.has = bind(store(), store().has);
 
     /**
      * Private variables.
@@ -95,3 +98,4 @@ exports = module.exports = function(typeName, collectionName){
     }
   };
 };
+exports.init = store;

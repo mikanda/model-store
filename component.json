@@ -8,7 +8,8 @@
     "mikanda/object-store": "*",
     "visionmedia/superagent": "*",
     "component/inherit": "*",
-    "component/map": "*"
+    "component/map": "*",
+    "component/bind": "*"
   },
   "development": {
     "visionmedia/mocha": "*",

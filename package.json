@@ -1,0 +1,27 @@
+{
+  "name": "model-store",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "mocha-phantomjs": "~3.1.6",
+    "phantomjs": "~1.9.2-4"
+  },
+  "devDependencies": {
+    "mocha": "~1.14.0",
+    "mocha-phantomjs": "~3.1.6",
+    "phantomjs": "~1.9.2-4"
+  },
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@dev.mikanda.de:mikanda/model-store.git"
+  },
+  "author": "mikanda IT Solutions",
+  "license": "BSD-2-Clause"
+}

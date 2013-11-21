@@ -1,0 +1,24 @@
+{
+  "name": "model-store",
+  "repo": "mikanda/model-store",
+  "version": "0.0.1",
+  "dependencies": {
+    "mikanda/model": "*",
+    "mikanda/collection": "*",
+    "mikanda/object-store": "*",
+    "visionmedia/superagent": "*",
+    "component/inherit": "*",
+    "component/map": "*"
+  },
+  "development": {
+    "visionmedia/mocha": "*",
+    "chaijs/chai": "*"
+  },
+  "scripts": [
+    "index.js",
+    "lib/model.js",
+    "lib/collection.js",
+    "lib/fetch.js",
+    "lib/store.js"
+  ]
+}

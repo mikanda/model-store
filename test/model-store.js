@@ -16,7 +16,6 @@ var chai = require('chai')
 var Employee;
 var Stamping;
 
-
 /**
  * Tests.
  */
@@ -28,12 +27,13 @@ describe('ModelStore', function(){
    */
 
   var EmployeeFactory = factory()
+    .sequence('_id', 'e')
     .attr('name', function () {
       return chance.name();
     });
 
   var StampingFactory = factory()
-    .sequence('_id', 'id')
+    .sequence('_id', 's')
     .attr('start', function () {
       return chance.date();
     })
@@ -94,6 +94,81 @@ describe('ModelStore', function(){
       stamping.start.should.equal(3);
       new employee.stampings().url.should.equal('/employees/3d45dw/stampings');
       stamping.url.should.equal('/employees/3d45dw/stamping');
+    });
+  });
+  describe('Model', function(){
+    describe('.get()', function(){
+      var server;
+      var employee;
+      var spyGet = sinon.spy();
+      before(function(){
+        var object = JSON.parse(JSON.stringify(new EmployeeFactory()));
+        object._id = 'e1000';
+        employee = new Employee(object);
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET', /\/employees\/([^/]+)/, function(xhr, id){
+            spyGet();
+            xhr.respond(200, {
+              "Content-Type": "application/json"
+            }, JSON.stringify(employee));
+          });
+      });
+      it('should fetch an instance by id', function(done){
+        Employee.get(employee._id, function(err, o){
+          if (err) return done(err);
+          o.toJSON().should.eql(employee.toJSON());
+          spyGet.calledOnce.should.be.true;
+          done();
+        });
+        server.respond();
+      });
+      after(function(){
+        server.restore();
+      });
+    });
+    describe('.all()', function(){
+      var server;
+      var employee;
+      var spyGet = sinon.spy();
+      var spyPost = sinon.spy();
+      before(function(){
+        var object = JSON.parse(JSON.stringify(new EmployeeFactory()));
+        object._id = 'e1001';
+        employee = new Employee(object);
+        server = sinon.fakeServer.create();
+        server.respondWith(
+          'GET', '/employees', function(xhr, id){
+            spyGet(xhr);
+            xhr.respond(200, {
+              "Content-Type": "application/json"
+            }, JSON.stringify([employee._id]));
+          });
+        server.respondWith(
+          'POST', '/employees', function(xhr, id){
+            spyPost(xhr);
+            xhr.respond(200, {
+              "Content-Type": "application/json"
+            }, JSON.stringify([employee]));
+          });
+      });
+      it('should fetch the whole collection of models', function(done){
+        Employee.all(function(err, res){
+          if (err) return done(err);
+          res.toJSON(true).should.eql([employee.toJSON(true)]);
+          spyPost.calledOnce.should.be.true;
+          Employee.all(function(err, res){
+            if (err) return done(err);
+            spyPost.calledOnce.should.be.true;
+            res.toJSON(true).should.eql([employee.toJSON(true)]);
+            done();
+          });
+        });
+        server.respond();
+      });
+      after(function(){
+        server.restore();
+      });
     });
   });
   describe('ScopedModel', function(){

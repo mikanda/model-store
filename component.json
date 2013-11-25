@@ -21,6 +21,7 @@
     "lib/model.js",
     "lib/collection.js",
     "lib/fetch.js",
-    "lib/store.js"
+    "lib/store.js",
+    "lib/statics.js"
   ]
 }

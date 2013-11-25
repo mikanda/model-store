@@ -6,7 +6,8 @@
 var bind = require('bind')
   , store = require('./lib/store')
   , ModelCtor = require('./lib/model')
-  , Collection = require('./lib/collection');
+  , Collection = require('./lib/collection')
+  , statics = require('./lib/statics');
 
 /**
  * Module exports.
@@ -40,6 +41,11 @@ exports = module.exports = function(typeName, collectionName){
 
     self.attr = attr;
 
+    // Load statics.
+    for (var key in statics) {
+      if (!statics.hasOwnProperty(key)) continue;
+      Model[key] = statics[key];
+    }
     Model.on('construct', function(inst){
       inst.url = Model.url + '/' + inst._id;
     });
